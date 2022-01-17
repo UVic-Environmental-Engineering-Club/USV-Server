@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 
-const PORT = 4000;
+const PORT = 3000;
 
 const app = express();
 const server = http.createServer(app);
@@ -13,8 +13,13 @@ app.get("/", (req, res) => {
   res.send("Hello world!");
 });
 
-io.on("connection", () => {
+const usvNamespace = io.of("/usv");
+
+usvNamespace.on("connection", (socket) => {
   console.log("a user connected");
+  setInterval(() => {
+    socket.emit("message", "hello");
+  }, 1000);
 });
 
 server.listen(PORT, () => {
