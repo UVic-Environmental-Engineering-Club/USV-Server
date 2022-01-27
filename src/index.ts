@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 
-const PORT = 3000;
+const PORT = 8080;
 
 const app = express();
 const server = http.createServer(app);
@@ -14,13 +14,26 @@ app.get("/", (req, res) => {
 });
 
 const usvNamespace = io.of("/usv");
+const groundstationNamespace = io.of("/groundstation");
 
 usvNamespace.on("connection", (socket) => {
   console.log("a user connected");
-  setInterval(() => {
-    socket.emit("message", "hello");
-  }, 1000);
 });
+
+groundstationNamespace.on("connection", (socket) => {
+  console.log("a user connected");
+});
+
+setInterval(() => {
+  usvNamespace.emit("message", `motor ${Math.floor(Math.random() * 100)}%`);
+}, 1000);
+
+setInterval(() => {
+  groundstationNamespace.emit(
+    "log",
+    `motor ${Math.floor(Math.random() * 100)}%`
+  );
+}, 1000);
 
 server.listen(PORT, () => {
   console.log(`Running on http://localhost:${PORT}`);
