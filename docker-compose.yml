@@ -9,4 +9,4 @@ services:
       - ./src/database/data/db/:/data/db/
       - ./src/database/data/log/:/var/log/mongodb/
     ports:
-      - 27017:27017
+      - 27016:27017
