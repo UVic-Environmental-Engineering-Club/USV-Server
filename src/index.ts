@@ -20,7 +20,8 @@ app.get("/", (req, res) => {
 
 const usvNamespace = io.of("/usv");
 const groundstationNamespace = io.of("/groundstation");
-let currentRoute: Point[] = [];
+const currentRoute: Point[] = [];
+const currentShore: Point[] = [];
 
 usvNamespace.on("connection", (socket) => {
   console.log("a user connected to usv");
@@ -30,28 +31,46 @@ groundstationNamespace.on("connection", (socket) => {
   console.log("a user connected to groundstation");
   socket.emit("init_route", currentRoute);
 
-  socket.on("add_point", (point: Point) => {
-    currentRoute.push(point);
-    groundstationNamespace.emit("add_point_ack", point);
-    usvNamespace.emit("add_point_ack", point);
-  });
+  socket.on(
+    "add_point",
+    ({ point, isRoute }: { point: Point; isRoute: boolean }) => {
+      const list = isRoute ? currentRoute : currentShore;
+      const eventMessage = isRoute
+        ? "add_point_route_ack"
+        : "add_point_shore_ack";
 
-  socket.on("delete_point", (point: Point) => {
-    const newRoute = [...currentRoute];
-    for (let i = 0; i < newRoute.length; i++) {
-      if (newRoute[i].lat === point.lat && newRoute[i].long === point.long) {
-        newRoute.splice(i, 1);
-      }
+      list.push(point);
+
+      groundstationNamespace.emit(eventMessage, list);
+      usvNamespace.emit(eventMessage, list);
     }
-    currentRoute = newRoute;
-    groundstationNamespace.emit("delete_point_ack", currentRoute);
-    usvNamespace.emit("delete_point_ack", currentRoute);
-  });
+  );
 
-  socket.on("clear_route", () => {
-    currentRoute = [];
-    groundstationNamespace.emit("clear_route_ack");
-    usvNamespace.emit("clear_route_ack");
+  socket.on(
+    "delete_point",
+    ({ point, isRoute }: { point: Point; isRoute: boolean }) => {
+      const eventMessage = isRoute
+        ? "delete_point_route_ack"
+        : "delete_point_shore_ack";
+      const list = isRoute ? currentRoute : currentShore;
+      for (let i = 0; i < list.length; i++) {
+        if (list[i].lat === point.lat && list[i].long === point.long) {
+          list.splice(i, 1);
+        }
+      }
+
+      groundstationNamespace.emit(eventMessage, list);
+      usvNamespace.emit(eventMessage, list);
+    }
+  );
+
+  socket.on("clear_route", (isRoute: boolean) => {
+    const list = isRoute ? currentRoute : currentShore;
+    const eventMessage = isRoute ? "clear_route_ack" : "clear_shore_ack";
+
+    list.splice(0, list.length);
+    groundstationNamespace.emit(eventMessage, list);
+    usvNamespace.emit(eventMessage, list);
   });
 });
 
