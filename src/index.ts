@@ -34,6 +34,7 @@ groundstationNamespace.on("connection", (socket) => {
   socket.on(
     "add_point",
     ({ point, isRoute }: { point: Point; isRoute: boolean }) => {
+      const updateMessage = isRoute ? "update_route_ack" : "update_shore_ack";
       const list = isRoute ? currentRoute : currentShore;
       const eventMessage = isRoute
         ? "add_point_route_ack"
@@ -42,13 +43,14 @@ groundstationNamespace.on("connection", (socket) => {
       list.push(point);
 
       groundstationNamespace.emit(eventMessage, list);
-      usvNamespace.emit(eventMessage, list);
+      usvNamespace.emit(updateMessage, list);
     }
   );
 
   socket.on(
     "delete_point",
     ({ point, isRoute }: { point: Point; isRoute: boolean }) => {
+      const updateMessage = isRoute ? "update_route_ack" : "update_shore_ack";
       const eventMessage = isRoute
         ? "delete_point_route_ack"
         : "delete_point_shore_ack";
@@ -60,17 +62,18 @@ groundstationNamespace.on("connection", (socket) => {
       }
 
       groundstationNamespace.emit(eventMessage, list);
-      usvNamespace.emit(eventMessage, list);
+      usvNamespace.emit(updateMessage, list);
     }
   );
 
   socket.on("clear_route", (isRoute: boolean) => {
     const list = isRoute ? currentRoute : currentShore;
+    const updateMessage = isRoute ? "update_route_ack" : "update_shore_ack";
     const eventMessage = isRoute ? "clear_route_ack" : "clear_shore_ack";
 
     list.splice(0, list.length);
     groundstationNamespace.emit(eventMessage, list);
-    usvNamespace.emit(eventMessage, list);
+    usvNamespace.emit(updateMessage, list);
   });
 });
 
