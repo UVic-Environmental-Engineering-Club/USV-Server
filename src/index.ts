@@ -25,6 +25,14 @@ const currentShore: Point[] = [];
 
 usvNamespace.on("connection", (socket) => {
   console.log("a user connected to usv");
+  socket.emit("init_route", currentRoute);
+
+  socket.on("serial", (data: { type: string; data: any }) => {
+    let message = "serial";
+    if (data.type === "GPS") message = "usv_gps";
+
+    groundstationNamespace.emit(message, data);
+});
 });
 
 groundstationNamespace.on("connection", (socket) => {
