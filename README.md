@@ -18,7 +18,11 @@ _(Can be run without docker, just install yarn `npm install -g yarn`, `yarn inst
 
 - To run in dev
 
-2. `yarn start`
+2. `yarn prettier --write .`
+
+- run prettier to clean up code
+
+3. `yarn start`
 
 - To run as production
 
