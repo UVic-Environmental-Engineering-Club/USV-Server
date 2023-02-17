@@ -26,18 +26,20 @@ const currentShore: Point[] = [];
 usvNamespace.on("connection", (socket) => {
   console.log("a user connected to usv");
   socket.emit("init_route", currentRoute);
+  socket.emit("init_shore", currentShore);
 
   socket.on("serial", (data: { type: string; data: any }) => {
     let message = "serial";
     if (data.type === "GPS") message = "usv_gps";
 
     groundstationNamespace.emit(message, data);
-});
+  });
 });
 
 groundstationNamespace.on("connection", (socket) => {
   console.log("a user connected to groundstation");
   socket.emit("init_route", currentRoute);
+  socket.emit("init_shore", currentShore);
 
   socket.on(
     "add_point",
@@ -76,14 +78,19 @@ groundstationNamespace.on("connection", (socket) => {
 
   socket.on("clear_route", (isRoute: boolean) => {
     const list = isRoute ? currentRoute : currentShore;
-    const usvMessage = isRoute ? "update_route_ack" : "update_shore_ack";
-    const groundstationMessage = isRoute
-      ? "clear_route_ack"
-      : "clear_shore_ack";
 
     list.splice(0, list.length);
-    groundstationNamespace.emit(groundstationMessage, list);
-    usvNamespace.emit(usvMessage, list);
+    groundstationNamespace.emit("clear_route_ack", list);
+    usvNamespace.emit("update_route_ack", list);
+  });
+
+  socket.on("clear_shore", (isRoute: boolean) => {
+    const list = isRoute ? currentShore : currentRoute;
+
+    list.splice(0, list.length);
+
+    groundstationNamespace.emit("clear_shore_ack", list);
+    usvNamespace.emit("update_shore_ack", list);
   });
 });
 
